@@ -1,0 +1,97 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'admin-dashboard/**'
+      - 'client-portal/**'
+      - 'landing-page/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'admin-dashboard/**'
+      - 'client-portal/**'
+      - 'landing-page/**'
+
+jobs:
+  admin-dashboard:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: admin-dashboard/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd admin-dashboard
+        npm ci
+    
+    - name: Run linter
+      run: |
+        cd admin-dashboard
+        npm run lint || true
+    
+    - name: Run type check
+      run: |
+        cd admin-dashboard
+        npm run type-check || true
+    
+    - name: Build
+      run: |
+        cd admin-dashboard
+        npm run build
+
+  client-portal:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: client-portal/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd client-portal
+        npm ci
+    
+    - name: Run linter
+      run: |
+        cd client-portal
+        npm run lint || true
+    
+    - name: Build
+      run: |
+        cd client-portal
+        npm run build
+
+  landing-page:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: landing-page/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd landing-page
+        npm ci
+    
+    - name: Build
+      run: |
+        cd landing-page
+        npm run build

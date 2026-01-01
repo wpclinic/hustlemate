@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +22,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'client_id',
+        'two_factor_enabled',
+        'two_factor_secret',
+        'is_active',
     ];
 
     /**
@@ -31,6 +37,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
     ];
 
     /**
@@ -43,6 +50,16 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'two_factor_enabled' => 'boolean',
+            'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the client that owns the user.
+     */
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 }
