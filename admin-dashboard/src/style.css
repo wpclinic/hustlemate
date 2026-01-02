@@ -1,13 +1,12 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    background-color: rgb(249 250 251);
+    color: rgb(17 24 39);
     margin: 0;
     min-width: 320px;
-    min-height: 100vh;
+    min-height:  100vh;
   }
 }
 
@@ -17,11 +16,11 @@
   }
   
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-600;
+    @apply bg-blue-600 text-white hover:bg-blue-700;
   }
   
   .btn-secondary {
-    @apply bg-secondary text-white hover:bg-secondary-600;
+    @apply bg-gray-600 text-white hover:bg-gray-700;
   }
   
   .btn-outline {
@@ -33,7 +32,6 @@
   }
   
   .input {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent;
   }
 }
-
