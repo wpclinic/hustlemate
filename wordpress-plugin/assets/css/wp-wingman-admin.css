@@ -1,0 +1,30 @@
+.wp-wingman-header {
+    background: linear-gradient(135deg, #20C997 0%, #17a085 100%);
+    padding: 20px;
+    border-radius: 8px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.wp-wingman-header p {
+    color: white !important;
+    margin: 0;
+}
+
+.wp-wingman-info {
+    margin-top: 30px;
+    padding: 20px;
+}
+
+.wp-wingman-info h2 {
+    margin-top: 0;
+    color: #20C997;
+}
+
+.wp-wingman-info .widefat td {
+    padding: 12px;
+}
+
+.wp-wingman-info .widefat tr:nth-child(even) {
+    background-color: #f9f9f9;
+}

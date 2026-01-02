@@ -1,0 +1,162 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: wpwingman-postgres
+    environment:
+      POSTGRES_DB: wpwingman
+      POSTGRES_USER: wpwingman
+      POSTGRES_PASSWORD: wpwingman_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wpwingman-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wpwingman"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: wpwingman-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - wpwingman-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Laravel Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wpwingman-backend
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+      APP_KEY: ${APP_KEY:-base64:placeholder}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: wpwingman
+      DB_USERNAME: wpwingman
+      DB_PASSWORD: wpwingman_secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CACHE_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - wpwingman-network
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  # Queue Worker
+  queue:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wpwingman-queue
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+      APP_KEY: ${APP_KEY:-base64:placeholder}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: wpwingman
+      DB_USERNAME: wpwingman
+      DB_PASSWORD: wpwingman_secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CACHE_DRIVER: redis
+      QUEUE_CONNECTION: redis
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - wpwingman-network
+    command: php artisan queue:work --tries=3
+
+  # Admin Dashboard (Vue 3)
+  admin-dashboard:
+    build:
+      context: ./admin-dashboard
+      dockerfile: Dockerfile
+    container_name: wpwingman-admin
+    environment:
+      VITE_API_URL: http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./admin-dashboard:/app
+      - /app/node_modules
+    networks:
+      - wpwingman-network
+    command: npm run dev -- --host 0.0.0.0 --port 3000
+
+  # Client Portal (Vue 3)
+  client-portal:
+    build:
+      context: ./client-portal
+      dockerfile: Dockerfile
+    container_name: wpwingman-client
+    environment:
+      VITE_API_URL: http://localhost:8000/api/v1
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./client-portal:/app
+      - /app/node_modules
+    networks:
+      - wpwingman-network
+    command: npm run dev -- --host 0.0.0.0 --port 3001
+
+  # Landing Page
+  landing-page:
+    build:
+      context: ./landing-page
+      dockerfile: Dockerfile
+    container_name: wpwingman-landing
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./landing-page:/app
+      - /app/node_modules
+    networks:
+      - wpwingman-network
+    command: npm run dev -- --host 0.0.0.0 --port 3002
+
+networks:
+  wpwingman-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

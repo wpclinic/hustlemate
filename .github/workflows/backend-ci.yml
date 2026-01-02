@@ -1,0 +1,92 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: wpwingman
+          POSTGRES_PASSWORD: wpwingman
+          POSTGRES_DB: wpwingman_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, pdo, pdo_pgsql, redis
+        coverage: xdebug
+    
+    - name: Copy .env
+      run: |
+        cd backend
+        cp .env.example .env
+        echo "DB_CONNECTION=pgsql" >> .env
+        echo "DB_HOST=localhost" >> .env
+        echo "DB_PORT=5432" >> .env
+        echo "DB_DATABASE=wpwingman_test" >> .env
+        echo "DB_USERNAME=wpwingman" >> .env
+        echo "DB_PASSWORD=wpwingman" >> .env
+        echo "REDIS_HOST=localhost" >> .env
+    
+    - name: Install Dependencies
+      run: |
+        cd backend
+        composer install --no-interaction --prefer-dist --optimize-autoloader
+    
+    - name: Generate key
+      run: |
+        cd backend
+        php artisan key:generate
+    
+    - name: Run migrations
+      run: |
+        cd backend
+        php artisan migrate --force
+    
+    - name: Run tests
+      run: |
+        cd backend
+        php artisan test --coverage
+    
+    - name: Run PHPStan
+      run: |
+        cd backend
+        ./vendor/bin/phpstan analyse || true
+    
+    - name: Run Pint
+      run: |
+        cd backend
+        ./vendor/bin/pint --test || true
