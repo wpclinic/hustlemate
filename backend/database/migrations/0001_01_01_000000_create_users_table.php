@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['admin', 'client', 'support'])->default('client');
-            $table->foreignId('client_id')->nullable()->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('client_id')->nullable();
             $table->boolean('two_factor_enabled')->default(false);
             $table->string('two_factor_secret')->nullable();
             $table->boolean('is_active')->default(true);
