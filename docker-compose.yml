@@ -44,9 +44,11 @@ services:
       dockerfile: Dockerfile
     container_name: wpwingman-backend
     environment:
+      APP_NAME: "WP Wingman"
       APP_ENV: local
       APP_DEBUG: true
       APP_KEY: ${APP_KEY:-base64:placeholder}
+      APP_URL: http://localhost:8000
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
@@ -57,12 +59,13 @@ services:
       REDIS_PORT: 6379
       CACHE_DRIVER: redis
       QUEUE_CONNECTION: redis
-      SESSION_DRIVER: redis
+      SESSION_DRIVER: database
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/var/www/html
       - /var/www/html/vendor
+      - /var/www/html/node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,7 +73,6 @@ services:
         condition: service_healthy
     networks:
       - wpwingman-network
-    command: php artisan serve --host=0.0.0.0 --port=8000
 
   # Queue Worker
   queue:
